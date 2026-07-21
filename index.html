@@ -23,7 +23,7 @@
       scrollbar-width: none;
     }
 
-    /* PRINT SYSTEM OVERHAUL */
+    /* PRINT SYSTEM OVERHAUL: Eliminates blank sheets */
     @media print {
       body * {
         visibility: hidden !important;
@@ -52,35 +52,6 @@
 
   <script type="text/babel">
     const { useState, useEffect, useMemo } = React;
-
-    const playSound = (type) => {
-      try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-
-        if (type === 'tap') {
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(600, ctx.currentTime);
-          osc.frequency.exponentialRampToValueAtTime(1000, ctx.currentTime + 0.05);
-          gain.gain.setValueAtTime(0.15, ctx.currentTime);
-          gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.05);
-          osc.start();
-          osc.stop(ctx.currentTime + 0.05);
-        } else if (type === 'success') {
-          osc.type = 'triangle';
-          osc.frequency.setValueAtTime(523.25, ctx.currentTime);
-          osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.08);
-          osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.16);
-          gain.gain.setValueAtTime(0.2, ctx.currentTime);
-          gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-          osc.start();
-          osc.stop(ctx.currentTime + 0.3);
-        }
-      } catch (e) {}
-    };
 
     const Icons = {
       Coffee: () => (
@@ -136,27 +107,13 @@
       ),
       Share: () => (
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-      ),
-      ArrowLeft: () => (
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-      ),
-      Lock: () => (
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      ),
-      Star: () => (
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
       )
     };
 
-    const DEFAULT_CATEGORIES = [
-      'Favorites ⭐', 'Signature Chai', 'Flavour Chai', 'Regular Shakes', 'Premium Shakes', 
-      'Coffee & Hot Brews', 'Flavoured Milk', 'Mocktails', 'Lassis', 'Ayurvedic & Herbal', 'Snacks'
-    ];
-
     const INITIAL_MENU = [
-      { id: 'sc1', name: 'Dum Chai', price: 20, category: 'Signature Chai', favorite: true, available: true },
-      { id: 'sc2', name: 'Allam Chai', price: 20, category: 'Signature Chai', favorite: true, available: true },
-      { id: 'sc3', name: 'Elachi Chai', price: 20, category: 'Signature Chai', favorite: true, available: true },
+      { id: 'sc1', name: 'Dum Chai', price: 20, category: 'Signature Chai', available: true },
+      { id: 'sc2', name: 'Allam Chai', price: 20, category: 'Signature Chai', available: true },
+      { id: 'sc3', name: 'Elachi Chai', price: 20, category: 'Signature Chai', available: true },
       { id: 'sc4', name: 'Mumbai Pan Chai', price: 20, category: 'Signature Chai', available: true },
       { id: 'sc5', name: 'Kerala Butter Chai', price: 20, category: 'Signature Chai', available: true },
       { id: 'sc6', name: 'Kolkata Kadak Chai', price: 20, category: 'Signature Chai', available: true },
@@ -226,9 +183,9 @@
       { id: 'ht1', name: 'Lemon Tea', price: 15, category: 'Ayurvedic & Herbal', available: true },
       { id: 'ht2', name: 'Green Tea', price: 20, category: 'Ayurvedic & Herbal', available: true },
       { id: 'ht3', name: 'Pudina Tea', price: 20, category: 'Ayurvedic & Herbal', available: true },
-      { id: 'sn1', name: 'Osmania Biscuits', price: 10, category: 'Snacks', favorite: true, available: true },
+      { id: 'sn1', name: 'Osmania Biscuits', price: 10, category: 'Snacks', available: true },
       { id: 'sn2', name: 'Egg Puff', price: 25, category: 'Snacks', available: true },
-      { id: 'sn3', name: 'Samosa', price: 15, category: 'Snacks', favorite: true, available: true },
+      { id: 'sn3', name: 'Samosa', price: 15, category: 'Snacks', available: true },
       { id: 'sn4', name: 'Chicken Puff', price: 35, category: 'Snacks', available: true },
       { id: 'sn5', name: 'Curry Puff', price: 20, category: 'Snacks', available: true }
     ];
@@ -237,34 +194,7 @@
       const [activeTab, setActiveTab] = useState('pos');
       const [selectedCategory, setSelectedCategory] = useState('Signature Chai');
       const [searchQuery, setSearchQuery] = useState('');
-      const [settingsSearchQuery, setSettingsSearchQuery] = useState('');
       
-      const [timeframe, setTimeframe] = useState('today');
-      const [startDate, setStartDate] = useState('');
-      const [endDate, setEndDate] = useState('');
-
-      const [pinCode, setPinCode] = useState(() => localStorage.getItem('chaidude_owner_pin') || '1234');
-      const [isPinUnlocked, setIsPinUnlocked] = useState(false);
-      const [enteredPin, setEnteredPin] = useState('');
-
-      const [tokenNumber, setTokenNumber] = useState(() => {
-        const storedDate = localStorage.getItem('chaidude_token_date');
-        const todayStr = new Date().toLocaleDateString('en-IN');
-        if (storedDate !== todayStr) {
-          localStorage.setItem('chaidude_token_date', todayStr);
-          localStorage.setItem('chaidude_next_token', '1');
-          return 1;
-        }
-        return Number(localStorage.getItem('chaidude_next_token')) || 1;
-      });
-
-      const [customCategories, setCustomCategories] = useState(() => {
-        const local = localStorage.getItem('chaidude_custom_cats');
-        return local ? JSON.parse(local) : DEFAULT_CATEGORIES;
-      });
-
-      const [newCategoryName, setNewCategoryName] = useState('');
-
       const [menuItems, setMenuItems] = useState(() => {
         const local = localStorage.getItem('chaidude_menu');
         return local ? JSON.parse(local) : INITIAL_MENU;
@@ -309,7 +239,7 @@
         return localStorage.getItem('chaidude_printer_phone') || '+91 9999999999';
       });
       const [printerGreeting, setPrinterGreeting] = useState(() => {
-        return localStorage.getItem('chaidude_printer_greeting') || 'Thank You!';
+        return localStorage.getItem('chaidude_printer_greeting') || 'THANKYOU! Visit Again!';
       });
 
       const [completedOrderForPrint, setCompletedOrderForPrint] = useState(null);
@@ -317,8 +247,6 @@
 
       const [cart, setCart] = useState([]);
       const [paymentMethod, setPaymentMethod] = useState('UPI');
-      const [splitDetails, setSplitMethod] = useState({ UPI: 0, Cash: 0, Card: 0 });
-
       const [customDiscount, setCustomDiscount] = useState(0);
       const [mobileCartOpen, setMobileCartOpen] = useState(false);
       const [syncStatus, setSyncStatus] = useState({ state: 'idle', message: '' });
@@ -327,15 +255,12 @@
       const [customItemName, setCustomItemName] = useState('');
       const [customItemPrice, setCustomItemPrice] = useState('');
 
+      // Form State for Adding New Menu Items
       const [newItemForm, setNewItemForm] = useState({
         name: '',
         category: 'Regular Shakes',
         price: ''
       });
-
-      useEffect(() => {
-        localStorage.setItem('chaidude_custom_cats', JSON.stringify(customCategories));
-      }, [customCategories]);
 
       useEffect(() => {
         localStorage.setItem('chaidude_menu', JSON.stringify(menuItems));
@@ -362,14 +287,6 @@
       }, [peakSurgePct]);
 
       useEffect(() => {
-        localStorage.setItem('chaidude_next_token', tokenNumber.toString());
-      }, [tokenNumber]);
-
-      useEffect(() => {
-        localStorage.setItem('chaidude_owner_pin', pinCode);
-      }, [pinCode]);
-
-      useEffect(() => {
         localStorage.setItem('chaidude_printer_width', printerWidth);
         localStorage.setItem('chaidude_printer_address', printerAddress);
         localStorage.setItem('chaidude_printer_phone', printerPhone);
@@ -377,29 +294,17 @@
       }, [printerWidth, printerAddress, printerPhone, printerGreeting]);
 
       const categories = useMemo(() => {
-        const itemCats = menuItems.map(item => item.category);
-        const combined = new Set([...customCategories, ...itemCats]);
-        return Array.from(combined);
-      }, [menuItems, customCategories]);
+        const cats = new Set(menuItems.map(item => item.category));
+        return Array.from(cats);
+      }, [menuItems]);
 
       const filteredItems = useMemo(() => {
         return menuItems.filter(item => {
-          if (selectedCategory === 'Favorites ⭐') {
-            const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
-            return item.favorite && matchesSearch;
-          }
           const matchesCategory = item.category === selectedCategory;
           const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
           return matchesCategory && matchesSearch;
         });
       }, [menuItems, selectedCategory, searchQuery]);
-
-      const filteredSettingsItems = useMemo(() => {
-        return menuItems.filter(item => {
-          const q = settingsSearchQuery.toLowerCase();
-          return item.name.toLowerCase().includes(q) || item.category.toLowerCase().includes(q);
-        });
-      }, [menuItems, settingsSearchQuery]);
 
       const cartTotals = useMemo(() => {
         const subtotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
@@ -409,7 +314,6 @@
       }, [cart, isPeakTime, peakSurgePct, customDiscount]);
 
       const addToCart = (product) => {
-        playSound('tap');
         setCart(prev => {
           const existing = prev.find(item => item.id === product.id);
           if (existing) {
@@ -420,7 +324,6 @@
       };
 
       const removeFromCart = (productId) => {
-        playSound('tap');
         setCart(prev => {
           const existing = prev.find(item => item.id === productId);
           if (existing.quantity === 1) {
@@ -437,11 +340,6 @@
       const clearCart = () => {
         setCart([]);
         setCustomDiscount(0);
-        setSplitMethod({ UPI: 0, Cash: 0, Card: 0 });
-      };
-
-      const toggleFavorite = (itemId) => {
-        setMenuItems(prev => prev.map(it => it.id === itemId ? { ...it, favorite: !it.favorite } : it));
       };
 
       const syncRecordWithGoogleSheet = async (type, recordData) => {
@@ -461,13 +359,12 @@
           date: datePart,
           timestamp: timestampStr,
           id: recordData.id,
-          token: recordData.tokenNo || '-',
           detail: type === 'SALE' ? displaySummary : recordData.item,
           subtotal: type === 'SALE' ? recordData.subtotal : 0,
           chargeOrExpense: type === 'SALE' ? recordData.peakSurge : recordData.amount,
           discount: type === 'SALE' ? recordData.discount : 0,
           total: type === 'SALE' ? recordData.total : recordData.amount,
-          paymentOrMode: type === 'SALE' ? (recordData.paymentMethod === 'Split' ? `Split (UPI:${recordData.splitBreakdown?.UPI || 0}, Cash:${recordData.splitBreakdown?.Cash || 0}, Card:${recordData.splitBreakdown?.Card || 0})` : recordData.paymentMethod) : recordData.category,
+          paymentOrMode: type === 'SALE' ? recordData.paymentMethod : recordData.category,
           notes: type === 'EXPENSE' ? recordData.notes : (recordData.isPeakTime ? 'Peak Mode Surcharge Applied' : 'Standard')
         };
 
@@ -503,32 +400,11 @@
       const handleCheckout = () => {
         if (cart.length === 0) return;
 
-        if (paymentMethod === 'Split') {
-          const splitSum = Number(splitDetails.UPI || 0) + Number(splitDetails.Cash || 0) + Number(splitDetails.Card || 0);
-          if (splitSum !== cartTotals.total) {
-            alert(`Split payment sum (₹${splitSum}) must equal total bill amount (₹${cartTotals.total}).`);
-            return;
-          }
-        }
-
-        playSound('success');
-
-        const storedDate = localStorage.getItem('chaidude_token_date');
-        const todayStr = new Date().toLocaleDateString('en-IN');
-        let currentTokenToUse = tokenNumber;
-
-        if (storedDate !== todayStr) {
-          localStorage.setItem('chaidude_token_date', todayStr);
-          currentTokenToUse = 1;
-        }
-
         const summaryText = cart.map(i => `${i.name}`).join(', ');
 
         const newOrder = {
           id: 'ORD-' + Date.now().toString().slice(-6),
-          tokenNo: currentTokenToUse,
           timestamp: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
-          rawDate: new Date().toISOString(),
           items: [...cart],
           itemsSummary: summaryText,
           subtotal: cartTotals.subtotal,
@@ -536,17 +412,12 @@
           discount: cartTotals.discount,
           total: cartTotals.total,
           paymentMethod: paymentMethod,
-          splitBreakdown: paymentMethod === 'Split' ? { ...splitDetails } : null,
           isPeakTime: isPeakTime
         };
 
         const updatedOrders = [newOrder, ...orders];
         setOrders(updatedOrders);
         
-        const nextToken = currentTokenToUse + 1;
-        setTokenNumber(nextToken);
-        localStorage.setItem('chaidude_next_token', nextToken.toString());
-
         if (googleSheetUrl) {
           syncRecordWithGoogleSheet('SALE', newOrder);
         }
@@ -561,17 +432,10 @@
         }, 250);
       };
 
-      const handlePrintAndFinish = () => {
-        triggerPrint();
-        setTimeout(() => {
-          closeReceiptModalAndClear();
-        }, 800);
-      };
-
       const handleShareReceipt = (order, mode) => {
         let message = "";
         if (mode === 'customer') {
-          message = `*MR. CHAI DUDE*\n${printerAddress}\nPh: ${printerPhone}\n\nToken #: ${order.tokenNo || '-'}\nInvoice: ${order.id}\nDate: ${order.timestamp}\n--------------------\n`;
+          message = `*MR. CHAI DUDE*\n${printerAddress}\nPh: ${printerPhone}\n\nInvoice: ${order.id}\nDate: ${order.timestamp}\n--------------------\n`;
           order.items.forEach(it => {
             message += `${it.name} x ${it.quantity} = ₹${it.price * it.quantity}\n`;
           });
@@ -579,10 +443,9 @@
           message += `Subtotal: ₹${order.subtotal}\n`;
           if (order.peakSurge > 0) message += `Peak Surge: +₹${order.peakSurge}\n`;
           if (order.discount > 0) message += `Discount: -₹${order.discount}\n`;
-          message += `*TOTAL PAYABLE: ₹${order.total}*\n`;
-          message += `Paid via: ${order.paymentMethod}\n${printerGreeting}`;
+          message += `*TOTAL PAYABLE: ₹${order.total}*\n\nPaid via: ${order.paymentMethod}\n${printerGreeting}`;
         } else {
-          message = `*KOT (KITCHEN SLIP)*\nToken #: ${order.tokenNo || '-'}\nOrder Ref: ${order.id}\nDate: ${order.timestamp}\n--------------------\n`;
+          message = `*KOT (KITCHEN SLIP)*\nOrder Ref: ${order.id}\nDate: ${order.timestamp}\n--------------------\n`;
           order.items.forEach(it => {
             message += `[ ] ${it.name} x ${it.quantity}\n`;
           });
@@ -593,6 +456,7 @@
             title: mode === 'customer' ? 'Mr Chai Dude Invoice' : 'Kitchen Slip',
             text: message
           }).catch(() => {
+            // Copy fallback if user cancels
             copyTextToClipboard(message);
           });
         } else {
@@ -629,7 +493,6 @@
         const newExpense = {
           id: 'EXP-' + Date.now().toString().slice(-6),
           timestamp: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
-          rawDate: new Date().toISOString(),
           item: expenseForm.item,
           amount: Number(expenseForm.amount),
           category: expenseForm.category,
@@ -665,7 +528,6 @@
         const newExpense = {
           id: 'EXP-' + Date.now().toString().slice(-6),
           timestamp: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
-          rawDate: new Date().toISOString(),
           item: itemName,
           amount: finalAmt,
           category: category,
@@ -686,77 +548,31 @@
         }
       };
 
-      const filteredAnalyticsData = useMemo(() => {
-        const now = new Date();
-        const todayStr = now.toLocaleDateString('en-IN');
-
-        const isWithinTimeframe = (record) => {
-          if (!record.timestamp) return false;
-          const recDateStr = record.timestamp.split(',')[0].trim();
-
-          let recDate = record.rawDate ? new Date(record.rawDate) : null;
-          if (!recDate || isNaN(recDate.getTime())) {
-            const parts = recDateStr.split('/');
-            if (parts.length === 3) {
-              recDate = new Date(parts[2], parts[1] - 1, parts[0]);
-            } else {
-              recDate = new Date(recDateStr);
-            }
-          }
-          
-          if (timeframe === 'today') {
-            return recDateStr === todayStr;
-          }
-
-          if (timeframe === 'weekly') {
-            const diffTime = Math.abs(now - recDate);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            return diffDays <= 7;
-          } 
-
-          if (timeframe === 'monthly') {
-            const diffTime = Math.abs(now - recDate);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            return diffDays <= 30;
-          }
-
-          if (timeframe === 'custom') {
-            if (!startDate && !endDate) return true;
-            const start = startDate ? new Date(startDate) : new Date('1970-01-01');
-            const end = endDate ? new Date(endDate) : new Date('2099-12-31');
-            end.setHours(23, 59, 59, 999);
-            return recDate >= start && recDate <= end;
-          }
-
-          return true;
-        };
-
-        const filteredOrders = orders.filter(isWithinTimeframe);
-        const filteredExpensesList = expenses.filter(isWithinTimeframe);
-
-        const totalRevenue = filteredOrders.reduce((sum, o) => sum + o.total, 0);
-        const totalExpenses = filteredExpensesList.reduce((sum, e) => sum + e.amount, 0);
-        const totalPeakSurges = filteredOrders.reduce((sum, o) => sum + (o.peakSurge || 0), 0);
-        const totalDiscounts = filteredOrders.reduce((sum, o) => sum + o.discount, 0);
-        const totalTransactions = filteredOrders.length;
+      const todaySalesData = useMemo(() => {
+        const todayStr = new Date().toLocaleDateString('en-IN');
         
-        let cashTotal = 0;
-        let upiTotal = 0;
-        let cardTotal = 0;
-
-        filteredOrders.forEach(o => {
-          if (o.paymentMethod === 'Cash') cashTotal += o.total;
-          else if (o.paymentMethod === 'UPI') upiTotal += o.total;
-          else if (o.paymentMethod === 'Card') cardTotal += o.total;
-          else if (o.paymentMethod === 'Split' && o.splitBreakdown) {
-            cashTotal += Number(o.splitBreakdown.Cash || 0);
-            upiTotal += Number(o.splitBreakdown.UPI || 0);
-            cardTotal += Number(o.splitBreakdown.Card || 0);
-          }
+        const todayOrders = orders.filter(o => {
+          const orderDateStr = o.timestamp.split(',')[0].trim();
+          return orderDateStr === todayStr;
         });
 
+        const todayExpensesList = expenses.filter(e => {
+          const expenseDateStr = e.timestamp.split(',')[0].trim();
+          return expenseDateStr === todayStr;
+        });
+
+        const totalRevenue = todayOrders.reduce((sum, o) => sum + o.total, 0);
+        const totalExpenses = todayExpensesList.reduce((sum, e) => sum + e.amount, 0);
+        const totalPeakSurges = todayOrders.reduce((sum, o) => sum + (o.peakSurge || 0), 0);
+        const totalDiscounts = todayOrders.reduce((sum, o) => sum + o.discount, 0);
+        const totalTransactions = todayOrders.length;
+        
+        const cashTotal = todayOrders.filter(o => o.paymentMethod === 'Cash').reduce((sum, o) => sum + o.total, 0);
+        const upiTotal = todayOrders.filter(o => o.paymentMethod === 'UPI').reduce((sum, o) => sum + o.total, 0);
+        const cardTotal = todayOrders.filter(o => o.paymentMethod === 'Card').reduce((sum, o) => sum + o.total, 0);
+
         const itemSales = {};
-        filteredOrders.forEach(order => {
+        todayOrders.forEach(order => {
           const itemList = order.items || [];
           itemList.forEach(item => {
             if (!itemSales[item.name]) {
@@ -772,8 +588,8 @@
           .sort((a, b) => b.quantity - a.quantity);
 
         return {
-          ordersList: filteredOrders,
-          expensesList: filteredExpensesList,
+          ordersList: todayOrders,
+          todayExpensesList,
           totalRevenue,
           totalExpenses,
           totalPeakSurges,
@@ -784,10 +600,10 @@
           cardTotal,
           bestSellers: sortedBestSellers
         };
-      }, [orders, expenses, timeframe, startDate, endDate]);
+      }, [orders, expenses]);
 
       const handleExportCSV = () => {
-        const headers = ['Type', 'Record ID', 'Token No', 'Timestamp', 'Date', 'Detail/Items Summary', 'Subtotal', 'Peak Surcharge / Expense Amt', 'Discount Applied', 'Total Paid/Expense', 'Mode/Category'];
+        const headers = ['Type', 'Record ID', 'Timestamp', 'Date', 'Detail/Items Summary', 'Subtotal', 'Peak Surcharge / Expense Amt', 'Discount Applied', 'Total Paid/Expense', 'Mode/Category'];
         
         const salesRows = orders.map(o => {
           let summary = o.itemsSummary;
@@ -795,12 +611,12 @@
             summary = o.items.map(i => `${i.name} (x${i.quantity})`).join(', ');
           }
           const dtPart = o.timestamp.split(',')[0].trim();
-          return ['SALE', o.id, o.tokenNo || '-', `"${o.timestamp}"`, `"${dtPart}"`, `"${summary}"`, o.subtotal, o.peakSurge || 0, o.discount, o.total, o.paymentMethod];
+          return ['SALE', o.id, `"${o.timestamp}"`, `"${dtPart}"`, `"${summary}"`, o.subtotal, o.peakSurge || 0, o.discount, o.total, o.paymentMethod];
         });
 
         const expenseRows = expenses.map(e => {
           const dtPart = e.timestamp.split(',')[0].trim();
-          return ['EXPENSE', e.id, '-', `"${e.timestamp}"`, `"${dtPart}"`, `"${e.item}"`, 0, e.amount, 0, e.amount, e.category];
+          return ['EXPENSE', e.id, `"${e.timestamp}"`, `"${dtPart}"`, `"${e.item}"`, 0, e.amount, 0, e.amount, e.category];
         });
 
         const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...salesRows.map(e => e.join(',')), ...expenseRows.map(e => e.join(','))].join('\n');
@@ -815,14 +631,12 @@
 
       const handleExportBackup = () => {
         const stateDump = {
-          customCategories,
           menu: menuItems,
           orders: orders,
           expenses: expenses,
           googleSheetUrl,
           isPeakTime,
           peakSurgePct,
-          tokenNumber,
           printerWidth,
           printerAddress,
           printerPhone,
@@ -846,14 +660,12 @@
         reader.onload = (e) => {
           try {
             const data = JSON.parse(e.target.result);
-            if (data.customCategories) setCustomCategories(data.customCategories);
             if (data.menu) setMenuItems(data.menu);
             if (data.orders) setOrders(data.orders);
             if (data.expenses) setExpenses(data.expenses);
             if (data.googleSheetUrl !== undefined) setGoogleSheetUrl(data.googleSheetUrl);
             if (data.isPeakTime !== undefined) setIsPeakTime(data.isPeakTime);
             if (data.peakSurgePct !== undefined) setPeakSurgePct(data.peakSurgePct);
-            if (data.tokenNumber !== undefined) setTokenNumber(data.tokenNumber);
             if (data.printerWidth !== undefined) setPrinterWidth(data.printerWidth);
             if (data.printerAddress !== undefined) setPrinterAddress(data.printerAddress);
             if (data.printerPhone !== undefined) setPrinterPhone(data.printerPhone);
@@ -891,6 +703,7 @@
         }
       };
 
+      // Handle Adding New Items inside Settings
       const handleAddNewMenuItem = (e) => {
         e.preventDefault();
         const priceNum = Number(newItemForm.price);
@@ -910,12 +723,13 @@
         setMenuItems(prev => [...prev, addedProduct]);
         setNewItemForm({
           name: '',
-          category: newItemForm.category,
+          category: newItemForm.category, // preserve selected category for easier multi-entry
           price: ''
         });
         setSyncStatus({ state: 'success', message: `Added "${addedProduct.name}" to ${addedProduct.category}!` });
       };
 
+      // Handle Deleting Menu Item from Settings
       const handleDeleteMenuItem = (itemId, itemName) => {
         if (confirm(`Are you sure you want to delete "${itemName}" from the menu?`)) {
           setMenuItems(prev => prev.filter(item => item.id !== itemId));
@@ -923,30 +737,10 @@
         }
       };
 
-      const handleAddCategory = (e) => {
-        e.preventDefault();
-        const trimmed = newCategoryName.trim();
-        if (trimmed && !categories.includes(trimmed)) {
-          setCustomCategories(prev => [...prev, trimmed]);
-          setNewCategoryName('');
-          setSyncStatus({ state: 'success', message: `Added new category "${trimmed}"!` });
-        }
-      };
-
-      const handleVerifyPin = (e) => {
-        e.preventDefault();
-        if (enteredPin === pinCode) {
-          setIsPinUnlocked(true);
-          setEnteredPin('');
-        } else {
-          alert('Incorrect Security PIN. Access Denied.');
-          setEnteredPin('');
-        }
-      };
-
       return (
         <div className="min-h-screen bg-orange-50/50 flex flex-col text-stone-800 font-sans">
           
+          {/* HEADER BAR */}
           <header className="bg-amber-800 text-amber-50 shadow-md sticky top-0 z-40 px-4 py-3 flex flex-wrap justify-between items-center gap-2">
             <div className="flex items-center gap-3">
               <div className="bg-amber-900 text-amber-300 p-2 rounded-full border border-amber-700 shadow-inner">
@@ -992,6 +786,7 @@
             </nav>
           </header>
 
+          {/* SYNC NOTIFICATION BANNER */}
           {syncStatus.state !== 'idle' && (
             <div className={`text-center py-2 text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-inner ${
               syncStatus.state === 'syncing' ? 'bg-yellow-100 text-yellow-800 border-b border-yellow-200' :
@@ -1008,8 +803,10 @@
             </div>
           )}
 
+          {/* MAIN LAYOUT WRAPPER */}
           <main className="flex-1 flex flex-col md:flex-row relative">
             
+            {/* VIEW 1: POS INTERFACE */}
             {activeTab === 'pos' && (
               <div className="flex-1 flex flex-col md:flex-row w-full">
                 
@@ -1078,25 +875,11 @@
                                 <span className="text-[10px] font-bold text-stone-400 bg-stone-100 px-2 py-0.5 rounded-full uppercase">
                                   {item.category}
                                 </span>
-
-                                <div className="flex items-center gap-1">
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      toggleFavorite(item.id);
-                                    }}
-                                    className={`p-1 rounded-full transition ${item.favorite ? 'text-amber-500' : 'text-stone-300 hover:text-stone-400'}`}
-                                    title="Toggle Favorite"
-                                  >
-                                    <Icons.Star />
-                                  </button>
-
-                                  {cartQty > 0 && (
-                                    <span className="bg-amber-500 text-amber-955 font-black text-xs h-5 w-5 rounded-full flex items-center justify-center shadow-sm">
-                                      {cartQty}
-                                    </span>
-                                  )}
-                                </div>
+                                {cartQty > 0 && (
+                                  <span className="bg-amber-500 text-amber-955 font-black text-xs h-5 w-5 rounded-full flex items-center justify-center shadow-sm">
+                                    {cartQty}
+                                  </span>
+                                )}
                               </div>
 
                               <h3 className="font-bold text-stone-800 text-sm md:text-base leading-tight mb-2">
@@ -1139,6 +922,7 @@
                   </div>
                 </div>
 
+                {/* RIGHT SIDEBAR: CART BLOCK */}
                 <div className={`w-full md:w-80 lg:w-96 bg-white border-l border-stone-200/80 flex flex-col shadow-lg transition-transform duration-300 md:translate-x-0 ${
                   mobileCartOpen ? 'fixed inset-0 z-50 translate-x-0' : 'fixed inset-y-0 right-0 z-50 translate-x-full md:static'
                 }`}>
@@ -1151,8 +935,8 @@
                     
                     <div className="flex gap-2">
                       {cart.length > 0 && (
-                        <button onClick={clearCart} className="text-rose-600 hover:text-rose-800 text-xs font-bold underline bg-rose-50 px-2 py-1 rounded-md transition">
-                          Clear Cart
+                        <button onClick={clearCart} className="text-stone-400 hover:text-stone-600 text-xs font-semibold underline">
+                          Reset
                         </button>
                       )}
                       <button onClick={() => setMobileCartOpen(false)} className="md:hidden text-stone-600 hover:text-stone-900 text-sm font-bold bg-stone-100 px-3 py-1.5 rounded-lg">
@@ -1215,32 +999,6 @@
                         </div>
                       )}
 
-                      <div className="flex justify-between items-center bg-amber-100/60 p-2.5 rounded-xl border border-amber-200/80">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-extrabold text-amber-900">Token Number:</span>
-                          <span className="text-xs font-black bg-amber-800 text-amber-50 px-2.5 py-0.5 rounded-lg">#{tokenNumber}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button 
-                            onClick={() => setTokenNumber(prev => Math.max(1, prev - 1))} 
-                            className="text-[10px] font-bold text-stone-600 hover:text-stone-900 bg-white px-2 py-1 rounded border border-stone-200"
-                          >
-                            -1
-                          </button>
-                          <button 
-                            onClick={() => {
-                              if (confirm("Reset token back to #1?")) {
-                                setTokenNumber(1);
-                                localStorage.setItem('chaidude_next_token', '1');
-                              }
-                            }} 
-                            className="text-[10px] font-extrabold text-amber-800 hover:underline"
-                          >
-                            Reset #1
-                          </button>
-                        </div>
-                      </div>
-
                       <div>
                         <div className="flex justify-between items-center mb-1.5">
                           <label className="text-xs font-semibold text-stone-500">Apply Discount (₹)</label>
@@ -1269,62 +1027,22 @@
 
                       <div className="space-y-1.5">
                         <span className="text-xs font-semibold text-stone-500">Payment Mode</span>
-                        <div className="grid grid-cols-4 gap-1.5">
-                          {['UPI', 'Cash', 'Card', 'Split'].map((mode) => (
+                        <div className="grid grid-cols-3 gap-2">
+                          {['UPI', 'Cash', 'Card'].map((mode) => (
                             <button
                               key={mode}
                               onClick={() => setPaymentMethod(mode)}
-                              className={`py-2 rounded-xl text-xs font-extrabold flex flex-col items-center gap-0.5 border transition-all ${
+                              className={`py-2 rounded-xl text-xs font-extrabold flex flex-col items-center gap-1 border transition-all ${
                                 paymentMethod === mode 
                                   ? 'bg-amber-800 text-amber-50 border-amber-800 shadow-sm' 
                                   : 'bg-white text-stone-600 border-stone-200 hover:bg-stone-50'
                               }`}
                             >
-                              <span className="text-xs font-black">{mode === 'Cash' ? '₹' : mode}</span>
-                              <span className="text-[9px] uppercase">{mode}</span>
+                              <span className="text-sm font-black">{mode === 'Cash' ? '₹' : mode}</span>
+                              <span className="text-[10px] uppercase">{mode}</span>
                             </button>
                           ))}
                         </div>
-
-                        {paymentMethod === 'Split' && (
-                          <div className="bg-amber-50/80 p-2.5 rounded-xl border border-amber-200 space-y-2 mt-2">
-                            <span className="text-[11px] font-bold text-amber-900 block border-b border-amber-200 pb-1">
-                              Split Amount Tally (Total: ₹{cartTotals.total})
-                            </span>
-                            <div className="grid grid-cols-3 gap-2">
-                              <div>
-                                <label className="text-[10px] font-bold text-stone-500 block">UPI (₹)</label>
-                                <input
-                                  type="number"
-                                  value={splitDetails.UPI || ''}
-                                  onChange={(e) => setSplitMethod({...splitDetails, UPI: Number(e.target.value)})}
-                                  className="w-full text-xs p-1.5 border border-stone-300 rounded-lg bg-white"
-                                  placeholder="0"
-                                />
-                              </div>
-                              <div>
-                                <label className="text-[10px] font-bold text-stone-500 block">Cash (₹)</label>
-                                <input
-                                  type="number"
-                                  value={splitDetails.Cash || ''}
-                                  onChange={(e) => setSplitMethod({...splitDetails, Cash: Number(e.target.value)})}
-                                  className="w-full text-xs p-1.5 border border-stone-300 rounded-lg bg-white"
-                                  placeholder="0"
-                                />
-                              </div>
-                              <div>
-                                <label className="text-[10px] font-bold text-stone-500 block">Card (₹)</label>
-                                <input
-                                  type="number"
-                                  value={splitDetails.Card || ''}
-                                  onChange={(e) => setSplitMethod({...splitDetails, Card: Number(e.target.value)})}
-                                  className="w-full text-xs p-1.5 border border-stone-300 rounded-lg bg-white"
-                                  placeholder="0"
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        )}
                       </div>
 
                       <div className="space-y-1 pt-2 border-t border-stone-200">
@@ -1361,6 +1079,7 @@
                   )}
                 </div>
                 
+                {/* FLOATING MOBILE VIEW TAB */}
                 {cart.length > 0 && (
                   <button
                     onClick={() => setMobileCartOpen(true)}
@@ -1374,92 +1093,30 @@
               </div>
             )}
 
+            {/* VIEW 2: EXPENSE MASTER CONTROL */}
             {activeTab === 'expenses' && (
               <div className="flex-1 p-4 md:p-6 max-w-6xl mx-auto space-y-6 max-h-[calc(100vh-80px)] overflow-y-auto">
                 
-                <div className="flex flex-wrap justify-between items-center gap-2">
-                  <button
-                    onClick={() => setActiveTab('pos')}
-                    className="inline-flex items-center gap-2 text-xs font-bold text-amber-900 bg-amber-100 hover:bg-amber-200 border border-amber-300 px-3.5 py-2 rounded-xl transition shadow-sm"
-                  >
-                    <Icons.ArrowLeft />
-                    <span>Back to Billing Screen</span>
-                  </button>
-
-                  <div className="flex items-center gap-2 bg-stone-200 p-1 rounded-xl">
-                    <button
-                      onClick={() => setTimeframe('today')}
-                      className={`px-3 py-1 text-xs font-extrabold rounded-lg transition ${timeframe === 'today' ? 'bg-amber-800 text-white shadow' : 'text-stone-600 hover:text-stone-900'}`}
-                    >
-                      Today
-                    </button>
-                    <button
-                      onClick={() => setTimeframe('weekly')}
-                      className={`px-3 py-1 text-xs font-extrabold rounded-lg transition ${timeframe === 'weekly' ? 'bg-amber-800 text-white shadow' : 'text-stone-600 hover:text-stone-900'}`}
-                    >
-                      Weekly
-                    </button>
-                    <button
-                      onClick={() => setTimeframe('monthly')}
-                      className={`px-3 py-1 text-xs font-extrabold rounded-lg transition ${timeframe === 'monthly' ? 'bg-amber-800 text-white shadow' : 'text-stone-600 hover:text-stone-900'}`}
-                    >
-                      Monthly
-                    </button>
-                    <button
-                      onClick={() => setTimeframe('custom')}
-                      className={`px-3 py-1 text-xs font-extrabold rounded-lg transition ${timeframe === 'custom' ? 'bg-amber-800 text-white shadow' : 'text-stone-600 hover:text-stone-900'}`}
-                    >
-                      Custom Range
-                    </button>
-                  </div>
-                </div>
-
-                {timeframe === 'custom' && (
-                  <div className="bg-white p-3 rounded-2xl border border-stone-200 flex flex-wrap gap-4 items-center shadow-sm">
-                    <div className="flex items-center gap-2">
-                      <label className="text-xs font-bold text-stone-600">From:</label>
-                      <input
-                        type="date"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                        className="text-xs p-2 border border-stone-300 rounded-xl"
-                      />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <label className="text-xs font-bold text-stone-600">To:</label>
-                      <input
-                        type="date"
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                        className="text-xs p-2 border border-stone-300 rounded-xl"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <div className="bg-gradient-to-r from-amber-900 via-amber-955 to-stone-900 rounded-3xl p-6 text-white shadow-xl border border-amber-800/80 flex flex-wrap justify-between items-center gap-4">
+                <div className="bg-gradient-to-r from-amber-850 to-amber-900 rounded-3xl p-6 text-white shadow-lg border border-amber-800 flex flex-wrap justify-between items-center gap-4">
                   <div className="space-y-1">
-                    <h2 className="text-xl md:text-2xl font-black text-amber-100 tracking-wide">
-                      Net Cash Registry ({timeframe === 'today' ? "Today" : timeframe === 'weekly' ? "Last 7 Days" : timeframe === 'monthly' ? "Last 30 Days" : "Custom Range"})
-                    </h2>
-                    <p className="text-xs text-amber-200/90 font-medium">Automatically cross-calculates sales income against cafe running expenses</p>
+                    <h2 className="text-xl font-black">Net Cash Registry</h2>
+                    <p className="text-xs text-amber-200">Automatically cross-calculates sales income against cafe running expenses</p>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-6">
                     <div className="text-right">
-                      <span className="text-[10px] text-amber-300/90 font-bold block uppercase tracking-wider">Sales Income</span>
-                      <span className="text-lg md:text-xl font-black text-emerald-400">₹{filteredAnalyticsData.totalRevenue}</span>
+                      <span className="text-[10px] text-amber-300 font-bold block uppercase">Today's Sales</span>
+                      <span className="text-lg font-black text-emerald-400">₹{todaySalesData.totalRevenue}</span>
                     </div>
-                    <div className="text-right border-l border-amber-700/60 pl-6">
-                      <span className="text-[10px] text-amber-300/90 font-bold block uppercase tracking-wider">Total Expenses</span>
-                      <span className="text-lg md:text-xl font-black text-rose-300">-₹{filteredAnalyticsData.totalExpenses}</span>
+                    <div className="text-right border-l border-amber-700 pl-6">
+                      <span className="text-lg font-black text-rose-300">-₹{todaySalesData.totalExpenses}</span>
                     </div>
-                    <div className="text-right border-l border-amber-700/60 pl-6 bg-stone-950/60 p-3 rounded-2xl border border-amber-600/30">
-                      <span className="text-[10px] text-amber-200 font-bold block uppercase tracking-wider">Current Net Balance</span>
-                      <span className={`text-xl md:text-2xl font-black ${
-                        (filteredAnalyticsData.totalRevenue - filteredAnalyticsData.totalExpenses) >= 0 ? 'text-emerald-300' : 'text-rose-400'
+                    <div className="text-right border-l border-amber-700 pl-6 bg-amber-955/40 p-3 rounded-2xl">
+                      <span className="text-[10px] text-amber-200 font-bold block uppercase">Current Net Balance</span>
+                      <span className={`text-xl font-black ${
+                        (todaySalesData.totalRevenue - todaySalesData.totalExpenses) >= 0 ? 'text-emerald-300' : 'text-rose-400'
                       }`}>
-                        ₹{filteredAnalyticsData.totalRevenue - filteredAnalyticsData.totalExpenses}
+                        ₹{todaySalesData.totalRevenue - todaySalesData.totalExpenses}
                       </span>
                     </div>
                   </div>
@@ -1586,18 +1243,18 @@
                     <div className="p-4 border-b border-stone-100 bg-stone-50/50 flex justify-between items-center">
                       <h3 className="font-extrabold text-stone-800 text-sm uppercase tracking-wide">Expense Ledger Book</h3>
                       <span className="text-[11px] font-black bg-stone-100 px-2.5 py-1 rounded-full text-stone-600">
-                        {filteredAnalyticsData.expensesList.length} Entries Logged
+                        {todaySalesData.todayExpensesList.length} Entries Today
                       </span>
                     </div>
 
-                    {filteredAnalyticsData.expensesList.length === 0 ? (
+                    {todaySalesData.todayExpensesList.length === 0 ? (
                       <div className="text-center py-16 px-4 flex-1 flex flex-col justify-center items-center">
                         <span className="text-4xl mb-2">📜</span>
-                        <p className="text-stone-500 font-bold text-sm">No expenses registered for this timeframe.</p>
+                        <p className="text-stone-500 font-bold text-sm">No expenses registered today.</p>
                       </div>
                     ) : (
                       <div className="divide-y divide-stone-100 overflow-y-auto max-h-[500px]">
-                        {filteredAnalyticsData.expensesList.map((expense) => (
+                        {todaySalesData.todayExpensesList.map((expense) => (
                           <div key={expense.id} className="p-4 flex justify-between items-start hover:bg-stone-50/30 transition">
                             <div className="min-w-0 pr-4 space-y-1">
                               <div className="flex items-center gap-2">
@@ -1612,7 +1269,7 @@
                                 </span>
                               </div>
                               <p className="text-xs text-stone-400 font-mono italic">{expense.notes}</p>
-                              <span className="text-[10px] text-stone-400 block">{expense.timestamp}</span>
+                              <span className="text-[10px] text-stone-400 block">{expense.timestamp.split(',')[1]}</span>
                             </div>
 
                             <div className="flex items-center gap-3">
@@ -1635,75 +1292,13 @@
               </div>
             )}
 
+            {/* VIEW 3: LIVE ANALYTICS */}
             {activeTab === 'dashboard' && (
               <div className="flex-1 p-4 md:p-6 space-y-6 max-h-[calc(100vh-80px)] overflow-y-auto">
-                
-                <div className="flex flex-wrap justify-between items-center gap-2">
-                  <button
-                    onClick={() => setActiveTab('pos')}
-                    className="inline-flex items-center gap-2 text-xs font-bold text-amber-900 bg-amber-100 hover:bg-amber-200 border border-amber-300 px-3.5 py-2 rounded-xl transition shadow-sm"
-                  >
-                    <Icons.ArrowLeft />
-                    <span>Back to Billing Screen</span>
-                  </button>
-
-                  <div className="flex bg-stone-200 p-1 rounded-xl gap-1">
-                    <button
-                      onClick={() => setTimeframe('today')}
-                      className={`px-3.5 py-1.5 text-xs font-extrabold rounded-lg transition ${timeframe === 'today' ? 'bg-amber-800 text-white shadow' : 'text-stone-600 hover:text-stone-900'}`}
-                    >
-                      Today
-                    </button>
-                    <button
-                      onClick={() => setTimeframe('weekly')}
-                      className={`px-3.5 py-1.5 text-xs font-extrabold rounded-lg transition ${timeframe === 'weekly' ? 'bg-amber-800 text-white shadow' : 'text-stone-600 hover:text-stone-900'}`}
-                    >
-                      Last 7 Days (Weekly)
-                    </button>
-                    <button
-                      onClick={() => setTimeframe('monthly')}
-                      className={`px-3.5 py-1.5 text-xs font-extrabold rounded-lg transition ${timeframe === 'monthly' ? 'bg-amber-800 text-white shadow' : 'text-stone-600 hover:text-stone-900'}`}
-                    >
-                      Last 30 Days (Monthly)
-                    </button>
-                    <button
-                      onClick={() => setTimeframe('custom')}
-                      className={`px-3.5 py-1.5 text-xs font-extrabold rounded-lg transition ${timeframe === 'custom' ? 'bg-amber-800 text-white shadow' : 'text-stone-600 hover:text-stone-900'}`}
-                    >
-                      Custom Range
-                    </button>
-                  </div>
-                </div>
-
-                {timeframe === 'custom' && (
-                  <div className="bg-white p-3.5 rounded-2xl border border-stone-200 flex flex-wrap gap-4 items-center shadow-sm">
-                    <div className="flex items-center gap-2">
-                      <label className="text-xs font-bold text-stone-600">From:</label>
-                      <input
-                        type="date"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                        className="text-xs p-2 border border-stone-300 rounded-xl"
-                      />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <label className="text-xs font-bold text-stone-600">To:</label>
-                      <input
-                        type="date"
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                        className="text-xs p-2 border border-stone-300 rounded-xl"
-                      />
-                    </div>
-                  </div>
-                )}
-
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-stone-200 pb-4">
                   <div>
-                    <h2 className="text-xl md:text-2xl font-black text-amber-955">
-                      {timeframe === 'today' ? 'Daily Sales Overview' : timeframe === 'weekly' ? 'Weekly Sales Performance' : timeframe === 'monthly' ? 'Monthly Sales Performance' : 'Custom Range Performance'}
-                    </h2>
-                    <p className="text-xs text-stone-500">Live analytics and transaction breakdown for {timeframe === 'today' ? 'today' : timeframe === 'weekly' ? 'the past 7 days' : timeframe === 'monthly' ? 'the past 30 days' : 'your selected custom dates'}</p>
+                    <h2 className="text-xl md:text-2xl font-black text-amber-955">How You Sold Today</h2>
+                    <p className="text-xs text-stone-500">Live summary of transactions for today</p>
                   </div>
 
                   <div className="flex gap-2">
@@ -1713,15 +1308,11 @@
                       className="bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-200 font-bold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 transition disabled:opacity-50"
                     >
                       <Icons.Download />
-                      Export CSV
+                      Keep Export CSV
                     </button>
                     <button
                       onClick={() => {
-                        if (!isPinUnlocked) {
-                          alert("Owner PIN required to reset data. Please unlock via Settings screen.");
-                          return;
-                        }
-                        if (confirm("CRITICAL WARNING: This will permanently wipe all local history from the browser. Proceed?")) {
+                        if (confirm("CRITICAL WARNING: This will permanently wipe all local history from the tablet browser. Proceed?")) {
                           setOrders([]);
                           setExpenses([]);
                         }
@@ -1736,25 +1327,25 @@
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                   <div className="bg-white rounded-2xl border border-stone-200 p-4 shadow-sm flex flex-col justify-between">
                     <span className="text-xs font-bold text-stone-500 uppercase">Gross Collection</span>
-                    <h3 className="text-2xl md:text-3xl font-black text-amber-955 mt-1">₹{filteredAnalyticsData.totalRevenue}</h3>
+                    <h3 className="text-2xl md:text-3xl font-black text-amber-955 mt-1">₹{todaySalesData.totalRevenue}</h3>
                   </div>
 
                   <div className="bg-white rounded-2xl border border-stone-200 p-4 shadow-sm flex flex-col justify-between">
                     <span className="text-xs font-bold text-stone-500 uppercase">Orders Served</span>
-                    <h3 className="text-2xl md:text-3xl font-black text-amber-955 mt-1">{filteredAnalyticsData.totalTransactions}</h3>
+                    <h3 className="text-2xl md:text-3xl font-black text-amber-955 mt-1">{todaySalesData.totalTransactions}</h3>
                   </div>
 
                   <div className="bg-white rounded-2xl border border-stone-200 p-4 shadow-sm flex flex-col justify-between">
                     <span className="text-xs font-bold text-stone-500 uppercase">Peak Surge Earnings</span>
-                    <h3 className="text-2xl md:text-3xl font-black text-rose-700 mt-1">+₹{filteredAnalyticsData.totalPeakSurges}</h3>
+                    <h3 className="text-2xl md:text-3xl font-black text-rose-700 mt-1">+₹{todaySalesData.totalPeakSurges}</h3>
                   </div>
 
                   <div className="bg-white rounded-2xl border border-stone-200 p-4 shadow-sm flex flex-col justify-between">
                     <span className="text-xs font-bold text-stone-500 uppercase">Net Profit Margin</span>
                     <h3 className={`text-2xl md:text-3xl font-black mt-1 ${
-                      (filteredAnalyticsData.totalRevenue - filteredAnalyticsData.totalExpenses) >= 0 ? 'text-emerald-600' : 'text-rose-600'
+                      (todaySalesData.totalRevenue - todaySalesData.totalExpenses) >= 0 ? 'text-emerald-600' : 'text-rose-600'
                     }`}>
-                      ₹{filteredAnalyticsData.totalRevenue - filteredAnalyticsData.totalExpenses}
+                      ₹{todaySalesData.totalRevenue - todaySalesData.totalExpenses}
                     </h3>
                   </div>
                 </div>
@@ -1767,28 +1358,28 @@
                     <div className="space-y-3">
                       <div className="flex justify-between text-xs font-semibold text-stone-600">
                         <span>UPI / QR Scan</span>
-                        <span>₹{filteredAnalyticsData.upiTotal}</span>
+                        <span>₹{todaySalesData.upiTotal}</span>
                       </div>
                       <div className="flex justify-between text-xs font-semibold text-stone-600">
                         <span>Cash Tally</span>
-                        <span>₹{filteredAnalyticsData.cashTotal}</span>
+                        <span>₹{todaySalesData.cashTotal}</span>
                       </div>
                       <div className="flex justify-between text-xs font-semibold text-stone-600">
                         <span>Credit Card</span>
-                        <span>₹{filteredAnalyticsData.cardTotal}</span>
+                        <span>₹{todaySalesData.cardTotal}</span>
                       </div>
                     </div>
                   </div>
 
                   <div className="bg-white rounded-2xl border border-stone-200 p-4 shadow-sm">
                     <h3 className="font-bold text-stone-800 text-sm md:text-base border-b border-stone-100 pb-2 mb-4">
-                      Top Items Sold ({timeframe === 'today' ? "Today" : timeframe === 'weekly' ? "Weekly" : timeframe === 'monthly' ? "Monthly" : "Custom Range"})
+                      Top Items Sold Today
                     </h3>
-                    {filteredAnalyticsData.bestSellers.length === 0 ? (
-                      <p className="text-center py-8 text-xs text-stone-400">No items registered for this period yet.</p>
+                    {todaySalesData.bestSellers.length === 0 ? (
+                      <p className="text-center py-8 text-xs text-stone-400">No items registered today yet.</p>
                     ) : (
                       <div className="space-y-3.5 max-h-[220px] overflow-y-auto">
-                        {filteredAnalyticsData.bestSellers.slice(0, 5).map((best, index) => (
+                        {todaySalesData.bestSellers.slice(0, 5).map((best, index) => (
                           <div key={index} className="flex justify-between items-center text-sm">
                             <span className="font-bold text-stone-800">#{index + 1} {best.name}</span>
                             <span className="text-xs bg-stone-100 px-2.5 py-0.5 rounded-full font-bold text-stone-600">
@@ -1801,22 +1392,22 @@
                   </div>
                 </div>
 
+                {/* TODAY TRANSACTIONS TABLE */}
                 <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
                   <div className="p-4 border-b border-stone-100 bg-stone-50/50">
-                    <h3 className="font-bold text-stone-800 text-sm">
-                      {timeframe === 'today' ? "Today's Transactions Log" : timeframe === 'weekly' ? "Past 7 Days Transactions" : timeframe === 'monthly' ? "Past 30 Days Transactions" : "Filtered Range Transactions"}
-                    </h3>
+                    <h3 className="font-bold text-stone-800 text-sm">Today's Transactions Log</h3>
                   </div>
-                  {filteredAnalyticsData.ordersList.length === 0 ? (
-                    <p className="text-center py-12 text-stone-400 text-xs font-semibold">No transactions found for this period.</p>
+                  {todaySalesData.ordersList.length === 0 ? (
+                    <p className="text-center py-12 text-stone-400 text-xs font-semibold">No transactions today yet.</p>
                   ) : (
                     <div className="overflow-x-auto">
                       <table className="w-full text-left text-sm whitespace-nowrap">
                         <thead>
                           <tr className="bg-stone-50 text-stone-500 font-bold border-b border-stone-100 text-xs">
-                            <th className="p-4">Token #</th>
+                            <th className="p-4">Type</th>
                             <th className="p-4">Order ID</th>
                             <th className="p-4">Timestamp</th>
+                            <th className="p-4">Date</th>
                             <th className="p-4">Items Summary</th>
                             <th className="p-4 text-right">Subtotal</th>
                             <th className="p-4 text-right">Total Paid</th>
@@ -1826,22 +1417,24 @@
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-stone-100">
-                          {filteredAnalyticsData.ordersList.map((order) => {
+                          {todaySalesData.ordersList.map((order) => {
                             let summary = order.itemsSummary;
                             if (!summary && order.items) {
                               summary = order.items.map(i => `${i.name} (x${i.quantity})`).join(', ');
                             }
+                            const orderDateOnly = order.timestamp.split(',')[0].trim();
                             return (
                               <tr key={order.id} className="hover:bg-stone-50/50 text-xs">
-                                <td className="p-4 font-black text-amber-800">#{order.tokenNo || '-'}</td>
-                                <td className="p-4 font-bold text-stone-600">{order.id}</td>
+                                <td className="p-4 font-bold text-stone-400">SALE</td>
+                                <td className="p-4 font-black text-amber-900">{order.id}</td>
                                 <td className="p-4 text-stone-500 font-mono">{order.timestamp}</td>
+                                <td className="p-4 text-stone-600">{orderDateOnly}</td>
                                 <td className="p-4 text-xs font-semibold text-stone-700 max-w-xs truncate">{summary}</td>
                                 <td className="p-4 text-right text-stone-500">₹{order.subtotal}</td>
                                 <td className="p-4 text-right font-black text-stone-800">₹{order.total}</td>
                                 <td className="p-4">
                                   <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 uppercase">
-                                    {order.paymentMethod === 'Split' ? 'Split' : order.paymentMethod}
+                                    {order.paymentMethod}
                                   </span>
                                 </td>
                                 <td className="p-4 text-center">
@@ -1873,17 +1466,11 @@
               </div>
             )}
 
+            {/* VIEW 4: CLOUD SYNC CONFIGURATION & OFFLINE RESTORE */}
             {activeTab === 'backup' && (
               <div className="flex-1 p-4 md:p-6 max-w-3xl mx-auto space-y-6 max-h-[calc(100vh-80px)] overflow-y-auto">
                 
-                <button
-                  onClick={() => setActiveTab('pos')}
-                  className="inline-flex items-center gap-2 text-xs font-bold text-amber-900 bg-amber-100 hover:bg-amber-200 border border-amber-300 px-3.5 py-2 rounded-xl transition shadow-sm"
-                >
-                  <Icons.ArrowLeft />
-                  <span>Back to Billing Screen</span>
-                </button>
-
+                {/* LOCAL DATABASE PROTECTION (CRITICAL FOR APK WEBVIEWS) */}
                 <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm space-y-4">
                   <div className="flex items-center gap-3 border-b border-stone-100 pb-4">
                     <span className="text-amber-700"><Icons.Database /></span>
@@ -1971,7 +1558,6 @@
       sheet.appendRow([
         "Record Type", 
         "Record ID",
-        "Token No",
         "Timestamp", 
         "Date",
         "Detail/Items Summary", 
@@ -1986,7 +1572,6 @@
     sheet.appendRow([
       data.type,
       data.id,
-      data.token,
       data.timestamp,
       data.date,
       data.detail,
@@ -2010,295 +1595,201 @@
               </div>
             )}
 
+            {/* VIEW 5: CONFIGURATION INTERFACE */}
             {activeTab === 'menu-settings' && (
               <div className="flex-1 p-4 md:p-6 space-y-6 max-h-[calc(100vh-80px)] overflow-y-auto">
                 
-                <button
-                  onClick={() => setActiveTab('pos')}
-                  className="inline-flex items-center gap-2 text-xs font-bold text-amber-900 bg-amber-100 hover:bg-amber-200 border border-amber-300 px-3.5 py-2 rounded-xl transition shadow-sm"
-                >
-                  <Icons.ArrowLeft />
-                  <span>Back to Billing Screen</span>
-                </button>
+                {/* NEW FEATURE: ADD NEW MENU ITEM SECTION */}
+                <div className="bg-white rounded-3xl border border-stone-200 p-5 md:p-6 shadow-sm space-y-4">
+                  <div className="flex items-center gap-2 border-b border-stone-100 pb-3">
+                    <span className="text-amber-800"><Icons.Plus /></span>
+                    <h2 className="text-base font-bold text-stone-800">Add New Menu Item</h2>
+                  </div>
 
-                {!isPinUnlocked ? (
-                  <div className="bg-white rounded-3xl border border-stone-200 p-8 max-w-md mx-auto text-center shadow-lg space-y-4">
-                    <div className="mx-auto w-12 h-12 bg-amber-100 text-amber-800 rounded-full flex items-center justify-center">
-                      <Icons.Lock />
-                    </div>
+                  <form onSubmit={handleAddNewMenuItem} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                     <div>
-                      <h3 className="font-extrabold text-stone-800 text-base">Owner Security PIN Required</h3>
-                      <p className="text-xs text-stone-500 mt-1">Enter PIN to access menu edits and store configuration (Default: 1234)</p>
-                    </div>
-
-                    <form onSubmit={handleVerifyPin} className="space-y-3 pt-2">
+                      <label className="text-xs font-semibold text-stone-500 block mb-1">Item Name</label>
                       <input
-                        type="password"
-                        placeholder="Enter 4-Digit PIN"
-                        value={enteredPin}
-                        onChange={(e) => setEnteredPin(e.target.value)}
-                        maxLength="6"
-                        className="w-full text-center tracking-widest text-lg font-black p-2.5 rounded-xl border border-stone-300 focus:outline-none focus:border-amber-500"
+                        type="text"
+                        placeholder="e.g., Mango Shake Special"
+                        value={newItemForm.name}
+                        onChange={(e) => setNewItemForm({...newItemForm, name: e.target.value})}
+                        className="w-full text-xs p-2.5 rounded-xl border border-stone-300 bg-stone-50 focus:outline-none focus:border-amber-500"
                         required
                       />
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-semibold text-stone-500 block mb-1">Category Group</label>
+                      <select
+                        value={newItemForm.category}
+                        onChange={(e) => setNewItemForm({...newItemForm, category: e.target.value})}
+                        className="w-full text-xs p-2.5 rounded-xl border border-stone-300 bg-stone-50 focus:outline-none focus:border-amber-500"
+                      >
+                        <option value="Regular Shakes">Regular Shakes</option>
+                        <option value="Premium Shakes">Premium Shakes</option>
+                        <option value="Coffee & Hot Brews">Coffee & Hot Brews</option>
+                        <option value="Flavoured Milk">Flavoured Milk</option>
+                        <option value="Mocktails">Mocktails</option>
+                        <option value="Lassis">Lassis</option>
+                        <option value="Ayurvedic & Herbal">Ayurvedic & Herbal</option>
+                        <option value="Signature Chai">Signature Chai</option>
+                        <option value="Flavour Chai">Flavour Chai</option>
+                        <option value="Snacks">Snacks</option>
+                      </select>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <div className="flex-1">
+                        <label className="text-xs font-semibold text-stone-500 block mb-1">Price (₹)</label>
+                        <input
+                          type="number"
+                          placeholder="₹"
+                          value={newItemForm.price}
+                          onChange={(e) => setNewItemForm({...newItemForm, price: e.target.value})}
+                          className="w-full text-xs p-2.5 rounded-xl border border-stone-300 bg-stone-50 focus:outline-none focus:border-amber-500"
+                          required
+                          min="1"
+                        />
+                      </div>
                       <button
                         type="submit"
-                        className="w-full bg-amber-800 hover:bg-amber-900 text-white font-bold py-2.5 rounded-xl text-xs transition"
+                        className="bg-amber-700 hover:bg-amber-800 text-white font-bold text-xs px-4 h-[38px] rounded-xl flex items-center justify-center gap-1.5 transition active:scale-95 shadow-sm shadow-amber-700/20"
                       >
-                        Unlock Settings
+                        <Icons.Plus />
+                        Add Item
                       </button>
-                    </form>
+                    </div>
+                  </form>
+                </div>
+
+                <div className="bg-white rounded-3xl border border-stone-200 p-5 md:p-6 shadow-sm space-y-4">
+                  <div className="flex items-center gap-2 border-b border-stone-100 pb-3">
+                    <span className="text-amber-800"><Icons.Printer /></span>
+                    <h2 className="text-base font-bold text-stone-800">Thermal & Desktop Printer Customization</h2>
                   </div>
-                ) : (
-                  <>
-                    <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-2xl flex justify-between items-center text-xs font-bold text-emerald-900">
-                      <span>🔓 Owner Access Granted</span>
-                      <button onClick={() => setIsPinUnlocked(false)} className="underline text-stone-500 hover:text-stone-800">Lock Again</button>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-semibold text-stone-500 block mb-1">Receipt Format / Page Size</label>
+                      <select
+                        value={printerWidth}
+                        onChange={(e) => setPrinterWidth(e.target.value)}
+                        className="w-full text-xs p-2.5 rounded-xl border border-stone-300 bg-stone-50 focus:outline-none"
+                      >
+                        <option value="58mm">Thermal 58mm (Handheld rolls)</option>
+                        <option value="80mm">Thermal 80mm (Desktop rolls)</option>
+                        <option value="Desktop-A4">Desktop Standard Sheet (A4 / Letter)</option>
+                      </select>
                     </div>
 
-                    <div className="bg-white rounded-3xl border border-stone-200 p-5 md:p-6 shadow-sm space-y-4">
-                      <div className="flex items-center gap-2 border-b border-stone-100 pb-3">
-                        <span className="text-amber-800"><Icons.Plus /></span>
-                        <h2 className="text-base font-bold text-stone-800">Manage Item Categories</h2>
-                      </div>
-
-                      <form onSubmit={handleAddCategory} className="flex gap-2 items-center">
-                        <input
-                          type="text"
-                          placeholder="e.g., Sweets, Combos, Desserts..."
-                          value={newCategoryName}
-                          onChange={(e) => setNewCategoryName(e.target.value)}
-                          className="flex-1 text-xs p-2.5 rounded-xl border border-stone-300 bg-stone-50 focus:outline-none focus:border-amber-500"
-                          required
-                        />
-                        <button
-                          type="submit"
-                          className="bg-amber-700 hover:bg-amber-800 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow-sm"
-                        >
-                          Add Category
-                        </button>
-                      </form>
-
-                      <div className="flex flex-wrap gap-2 pt-1">
-                        {categories.map((cat) => (
-                          <span key={cat} className="text-xs bg-amber-50 border border-amber-200 text-amber-900 px-3 py-1 rounded-full font-bold">
-                            {cat}
-                          </span>
-                        ))}
-                      </div>
+                    <div>
+                      <label className="text-xs font-semibold text-stone-500 block mb-1">Contact Phone Number</label>
+                      <input
+                        type="text"
+                        value={printerPhone}
+                        onChange={(e) => setPrinterPhone(e.target.value)}
+                        className="w-full text-xs p-2.5 rounded-xl border border-stone-300 focus:outline-none"
+                      />
                     </div>
 
-                    <div className="bg-white rounded-3xl border border-stone-200 p-5 md:p-6 shadow-sm space-y-4">
-                      <div className="flex items-center gap-2 border-b border-stone-100 pb-3">
-                        <span className="text-amber-800"><Icons.Plus /></span>
-                        <h2 className="text-base font-bold text-stone-800">Add New Menu Item</h2>
-                      </div>
+                    <div className="md:col-span-2">
+                      <label className="text-xs font-semibold text-stone-500 block mb-1">Store Address / Subheading</label>
+                      <input
+                        type="text"
+                        value={printerAddress}
+                        onChange={(e) => setPrinterAddress(e.target.value)}
+                        className="w-full text-xs p-2.5 rounded-xl border border-stone-300 focus:outline-none"
+                      />
+                    </div>
 
-                      <form onSubmit={handleAddNewMenuItem} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                    <div className="md:col-span-2">
+                      <label className="text-xs font-semibold text-stone-500 block mb-1">Footer Greeting Note</label>
+                      <input
+                        type="text"
+                        value={printerGreeting}
+                        onChange={(e) => setPrinterGreeting(e.target.value)}
+                        className="w-full text-xs p-2.5 rounded-xl border border-stone-300 focus:outline-none"
+                        placeholder="HARIOM! Visit Again!"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-r from-amber-600 to-amber-700 rounded-3xl p-5 text-amber-50 shadow-md flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div className="space-y-1">
+                    <h2 className="text-lg font-black">Configure Peak Hours Surcharges</h2>
+                    <p className="text-xs text-amber-200">Set premium percentages on busy peak periods</p>
+                  </div>
+                  
+                  <div className="flex items-center gap-4 bg-amber-955/30 p-3 rounded-2xl border border-amber-500/20">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[10px] font-bold text-amber-200">Surge %</span>
+                      <input
+                        type="number"
+                        value={peakSurgePct}
+                        onChange={(e) => setPeakSurgePct(Math.max(0, Math.min(100, Number(e.target.value))))}
+                        className="w-12 bg-amber-900 border border-amber-700 rounded p-1 text-center font-bold text-sm text-white"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1 items-end">
+                      <span className="text-[10px] font-bold text-amber-200">Status</span>
+                      <button
+                        onClick={() => setIsPeakTime(!isPeakTime)}
+                        className={`px-4 py-1.5 rounded-xl text-xs font-extrabold shadow ${
+                          isPeakTime ? 'bg-rose-500 text-white' : 'bg-stone-500 text-stone-200'
+                        }`}
+                      >
+                        {isPeakTime ? 'PEAK ON' : 'STANDARD'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
+                  <div className="p-4 border-b border-stone-155 bg-stone-50/50">
+                    <h3 className="font-bold text-stone-800 text-sm">Adjust Prices & Availability</h3>
+                  </div>
+
+                  <div className="divide-y divide-stone-100 max-h-[450px] overflow-y-auto">
+                    {menuItems.map((item) => (
+                      <div key={item.id} className="p-4 flex items-center justify-between hover:bg-stone-50/40 transition">
                         <div>
-                          <label className="text-xs font-semibold text-stone-500 block mb-1">Item Name</label>
-                          <input
-                            type="text"
-                            placeholder="e.g., Mango Shake Special"
-                            value={newItemForm.name}
-                            onChange={(e) => setNewItemForm({...newItemForm, name: e.target.value})}
-                            className="w-full text-xs p-2.5 rounded-xl border border-stone-300 bg-stone-50 focus:outline-none focus:border-amber-500"
-                            required
-                          />
+                          <h4 className="font-bold text-stone-800 text-sm">{item.name}</h4>
+                          <p className="text-xs font-bold text-amber-800 mt-1">₹{item.price} ({item.category})</p>
                         </div>
 
-                        <div>
-                          <label className="text-xs font-semibold text-stone-500 block mb-1">Category Group</label>
-                          <select
-                            value={newItemForm.category}
-                            onChange={(e) => setNewItemForm({...newItemForm, category: e.target.value})}
-                            className="w-full text-xs p-2.5 rounded-xl border border-stone-300 bg-stone-50 focus:outline-none focus:border-amber-500"
-                          >
-                            {categories.map((cat) => (
-                              <option key={cat} value={cat}>{cat}</option>
-                            ))}
-                          </select>
-                        </div>
-
-                        <div className="flex gap-2">
-                          <div className="flex-1">
-                            <label className="text-xs font-semibold text-stone-500 block mb-1">Price (₹)</label>
-                            <input
-                              type="number"
-                              placeholder="₹"
-                              value={newItemForm.price}
-                              onChange={(e) => setNewItemForm({...newItemForm, price: e.target.value})}
-                              className="w-full text-xs p-2.5 rounded-xl border border-stone-300 bg-stone-50 focus:outline-none focus:border-amber-500"
-                              required
-                              min="1"
-                            />
-                          </div>
+                        <div className="flex items-center gap-2">
                           <button
-                            type="submit"
-                            className="bg-amber-700 hover:bg-amber-800 text-white font-bold text-xs px-4 h-[38px] rounded-xl flex items-center justify-center gap-1.5 transition active:scale-95 shadow-sm shadow-amber-700/20"
-                          >
-                            <Icons.Plus />
-                            Add Item
-                          </button>
-                        </div>
-                      </form>
-                    </div>
-
-                    <div className="bg-white rounded-3xl border border-stone-200 p-5 md:p-6 shadow-sm space-y-4">
-                      <div className="flex items-center gap-2 border-b border-stone-100 pb-3">
-                        <span className="text-amber-800"><Icons.Printer /></span>
-                        <h2 className="text-base font-bold text-stone-800">Thermal & Desktop Printer Customization</h2>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-xs font-semibold text-stone-500 block mb-1">Receipt Format / Page Size</label>
-                          <select
-                            value={printerWidth}
-                            onChange={(e) => setPrinterWidth(e.target.value)}
-                            className="w-full text-xs p-2.5 rounded-xl border border-stone-300 bg-stone-50 focus:outline-none"
-                          >
-                            <option value="58mm">Thermal 58mm (Handheld rolls)</option>
-                            <option value="80mm">Thermal 80mm (Desktop rolls)</option>
-                            <option value="Desktop-A4">Desktop Standard Sheet (A4 / Letter)</option>
-                          </select>
-                        </div>
-
-                        <div>
-                          <label className="text-xs font-semibold text-stone-500 block mb-1">Contact Phone Number</label>
-                          <input
-                            type="text"
-                            value={printerPhone}
-                            onChange={(e) => setPrinterPhone(e.target.value)}
-                            className="w-full text-xs p-2.5 rounded-xl border border-stone-300 focus:outline-none"
-                          />
-                        </div>
-
-                        <div className="md:col-span-2">
-                          <label className="text-xs font-semibold text-stone-500 block mb-1">Store Address / Subheading</label>
-                          <input
-                            type="text"
-                            value={printerAddress}
-                            onChange={(e) => setPrinterAddress(e.target.value)}
-                            className="w-full text-xs p-2.5 rounded-xl border border-stone-300 focus:outline-none"
-                          />
-                        </div>
-
-                        <div className="md:col-span-2">
-                          <label className="text-xs font-semibold text-stone-500 block mb-1">Footer Greeting Note</label>
-                          <input
-                            type="text"
-                            value={printerGreeting}
-                            onChange={(e) => setPrinterGreeting(e.target.value)}
-                            className="w-full text-xs p-2.5 rounded-xl border border-stone-300 focus:outline-none"
-                            placeholder="Thank You!"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="text-xs font-semibold text-stone-500 block sm:text-xs">Change Owner PIN Code</label>
-                          <input
-                            type="text"
-                            value={pinCode}
-                            onChange={(e) => setPinCode(e.target.value)}
-                            className="w-full text-xs p-2.5 rounded-xl border border-stone-300 focus:outline-none"
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-gradient-to-r from-amber-600 to-amber-700 rounded-3xl p-5 text-amber-50 shadow-md flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                      <div className="space-y-1">
-                        <h2 className="text-lg font-black">Configure Peak Hours Surcharges</h2>
-                        <p className="text-xs text-amber-200">Set premium percentages on busy peak periods</p>
-                      </div>
-                      
-                      <div className="flex items-center gap-4 bg-amber-955/30 p-3 rounded-2xl border border-amber-500/20">
-                        <div className="flex flex-col gap-1">
-                          <span className="text-[10px] font-bold text-amber-200">Surge %</span>
-                          <input
-                            type="number"
-                            value={peakSurgePct}
-                            onChange={(e) => setPeakSurgePct(Math.max(0, Math.min(100, Number(e.target.value))))}
-                            className="w-12 bg-amber-900 border border-amber-700 rounded p-1 text-center font-bold text-sm text-white"
-                          />
-                        </div>
-
-                        <div className="flex flex-col gap-1 items-end">
-                          <span className="text-[10px] font-bold text-amber-200">Status</span>
-                          <button
-                            onClick={() => setIsPeakTime(!isPeakTime)}
-                            className={`px-4 py-1.5 rounded-xl text-xs font-extrabold shadow ${
-                              isPeakTime ? 'bg-rose-500 text-white' : 'bg-stone-500 text-stone-200'
+                            onClick={() => {
+                              setMenuItems(prev => prev.map(m => m.id === item.id ? { ...m, available: !m.available } : m));
+                            }}
+                            className={`text-xs px-2.5 py-1.5 rounded-lg font-bold border ${
+                              item.available ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
                             }`}
                           >
-                            {isPeakTime ? 'PEAK ON' : 'STANDARD'}
+                            {item.available ? 'In Stock' : 'Sold Out'}
+                          </button>
+
+                          <button onClick={() => setEditingItem({ ...item })} className="text-stone-400 hover:text-amber-800 p-1.5 border border-stone-200 rounded-lg hover:bg-stone-50 transition" title="Edit Item">
+                            <Icons.Edit />
+                          </button>
+
+                          <button onClick={() => handleDeleteMenuItem(item.id, item.name)} className="text-stone-400 hover:text-rose-600 p-1.5 border border-stone-200 rounded-lg hover:bg-stone-50 transition" title="Delete Item">
+                            <Icons.Trash />
                           </button>
                         </div>
                       </div>
-                    </div>
-
-                    <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
-                      <div className="p-4 border-b border-stone-155 bg-stone-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <h3 className="font-bold text-stone-800 text-sm">Adjust Prices & Availability</h3>
-                        
-                        <div className="relative w-full sm:w-64">
-                          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-stone-400">
-                            <Icons.Search />
-                          </span>
-                          <input
-                            type="text"
-                            placeholder="Search items to adjust..."
-                            value={settingsSearchQuery}
-                            onChange={(e) => setSettingsSearchQuery(e.target.value)}
-                            className="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl border border-stone-300 focus:border-amber-500 focus:outline-none bg-white"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="divide-y divide-stone-100 max-h-[450px] overflow-y-auto">
-                        {filteredSettingsItems.length === 0 ? (
-                          <p className="text-center py-8 text-xs text-stone-400 font-medium">No menu items match your search.</p>
-                        ) : (
-                          filteredSettingsItems.map((item) => (
-                            <div key={item.id} className="p-4 flex items-center justify-between hover:bg-stone-50/40 transition">
-                              <div>
-                                <h4 className="font-bold text-stone-800 text-sm">{item.name}</h4>
-                                <p className="text-xs font-bold text-amber-800 mt-1">₹{item.price} ({item.category})</p>
-                              </div>
-
-                              <div className="flex items-center gap-2">
-                                <button
-                                  onClick={() => {
-                                    setMenuItems(prev => prev.map(m => m.id === item.id ? { ...m, available: !m.available } : m));
-                                  }}
-                                  className={`text-xs px-2.5 py-1.5 rounded-lg font-bold border ${
-                                    item.available ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
-                                  }`}
-                                >
-                                  {item.available ? 'In Stock' : 'Sold Out'}
-                                </button>
-
-                                <button onClick={() => setEditingItem({ ...item })} className="text-stone-400 hover:text-amber-800 p-1.5 border border-stone-200 rounded-lg hover:bg-stone-50 transition" title="Edit Item">
-                                  <Icons.Edit />
-                                </button>
-
-                                <button onClick={() => handleDeleteMenuItem(item.id, item.name)} className="text-stone-400 hover:text-rose-600 p-1.5 border border-stone-200 rounded-lg hover:bg-stone-50 transition" title="Delete Item">
-                                  <Icons.Trash />
-                                </button>
-                              </div>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    </div>
-                  </>
-                )}
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
 
           </main>
 
+          {/* EDIT DIALOG MODAL */}
           {editingItem && (
             <div className="fixed inset-0 bg-stone-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
               <div className="bg-white rounded-3xl p-6 w-full max-w-sm space-y-4 shadow-2xl">
@@ -2333,6 +1824,7 @@
             </div>
           )}
 
+          {/* OFF MENU MODAL */}
           {customItemModal && (
             <div className="fixed inset-0 bg-stone-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
               <div className="bg-white rounded-3xl p-6 w-full max-w-sm space-y-4 shadow-2xl">
@@ -2369,6 +1861,7 @@
             </div>
           )}
 
+          {/* ORDER SUCCESS POPUP & PREVIEW */}
           {completedOrderForPrint && (
             <div className="fixed inset-0 bg-stone-900/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-4 overflow-y-auto">
               <div className={`bg-white rounded-3xl w-full p-6 shadow-2xl space-y-5 transition-all ${printerWidth === 'Desktop-A4' ? 'max-w-2xl' : 'max-w-md'}`}>
@@ -2377,11 +1870,7 @@
                     <Icons.Check />
                   </div>
                   <h3 className="text-lg font-black text-stone-800">Order Placed Successfully!</h3>
-                  <div className="flex justify-center gap-2 text-xs text-stone-500">
-                    <span>Token #: <b className="text-amber-800">#{completedOrderForPrint.tokenNo || '-'}</b></span>
-                    <span>•</span>
-                    <span>ID: {completedOrderForPrint.id}</span>
-                  </div>
+                  <p className="text-xs text-stone-400">ID: {completedOrderForPrint.id}</p>
                 </div>
 
                 <div className="flex border-b border-stone-200">
@@ -2412,7 +1901,6 @@
                             </div>
                             <div className="text-right">
                               <h5 className="text-sm font-bold text-stone-600">RETAIL INVOICE</h5>
-                              <p className="text-xs"><b>Token #:</b> #{completedOrderForPrint.tokenNo || '-'}</p>
                               <p className="text-xs"><b>Invoice:</b> {completedOrderForPrint.id}</p>
                               <p className="text-xs"><b>Date:</b> {completedOrderForPrint.timestamp}</p>
                             </div>
@@ -2454,7 +1942,6 @@
                           <div className="text-center text-[10px]">{printerAddress}</div>
                           <div className="text-center text-[10px]">Ph: {printerPhone}</div>
                           <div className="border-b border-dashed border-stone-400 my-2"></div>
-                          <div className="text-center font-black text-sm">TOKEN #: #{completedOrderForPrint.tokenNo || '-'}</div>
                           <div>Date: {completedOrderForPrint.timestamp}</div>
                           <div>Invoice: {completedOrderForPrint.id}</div>
                           <div className="border-b border-dashed border-stone-400 my-2"></div>
@@ -2502,7 +1989,6 @@
                       <div className="space-y-1 font-mono text-xs">
                         <div className="text-center font-bold text-sm">KITCHEN ORDER TICKET (KOT)</div>
                         <div className="border-b border-dashed border-stone-400 my-2"></div>
-                        <div className="text-center font-black text-base">TOKEN #: #{completedOrderForPrint.tokenNo || '-'}</div>
                         <div>Date: {completedOrderForPrint.timestamp}</div>
                         <div>Order Ref: {completedOrderForPrint.id}</div>
                         <div className="border-b border-dashed border-stone-400 my-2"></div>
@@ -2525,11 +2011,11 @@
                 <div className="flex flex-col gap-2">
                   <div className="grid grid-cols-2 gap-2">
                     <button
-                      onClick={handlePrintAndFinish}
+                      onClick={triggerPrint}
                       className="bg-amber-800 hover:bg-amber-955 text-white font-bold py-3 px-4 rounded-xl text-xs flex items-center justify-center gap-2 shadow"
                     >
                       <Icons.Printer />
-                      <span>Print & Finish</span>
+                      <span>Print (Paper)</span>
                     </button>
                     <button
                       onClick={() => handleShareReceipt(completedOrderForPrint, printMode)}
@@ -2550,6 +2036,7 @@
             </div>
           )}
 
+          {/* BACKGROUND INVISIBLE PHYSICAL SYSTEM WINDOW FOR CORNER-CASES */}
           {completedOrderForPrint && (
             <div id="print-area" className="hidden">
               {printMode === 'customer' ? (
@@ -2563,8 +2050,7 @@
                       </div>
                       <div style={{ textTransform: 'uppercase', textAlign: 'right' }}>
                         <h2 style={{ fontSize: '20px', fontWeight: '700', margin: '0', color: '#444' }}>RETAIL INVOICE</h2>
-                        <p style={{ margin: '5px 0 0 0', fontSize: '18px', fontWeight: '900', color: '#78350f' }}>Token #: #{completedOrderForPrint.tokenNo || '-'}</p>
-                        <p style={{ margin: '2px 0 0 0' }}><b>Invoice No:</b> {completedOrderForPrint.id}</p>
+                        <p style={{ margin: '5px 0 0 0' }}><b>Invoice No:</b> {completedOrderForPrint.id}</p>
                         <p style={{ margin: '2px 0 0 0' }}><b>Date & Time:</b> {completedOrderForPrint.timestamp}</p>
                       </div>
                     </div>
@@ -2627,7 +2113,6 @@
                     <div style={{ textAlign: 'center', fontSize: '9px' }}>Ph: {printerPhone}</div>
                     <div style={{ borderBottom: '1px dashed black', margin: '6px 0' }}></div>
                     
-                    <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '13px' }}>TOKEN #: #{completedOrderForPrint.tokenNo || '-'}</div>
                     <div>ID: {completedOrderForPrint.id}</div>
                     <div>Date: {completedOrderForPrint.timestamp}</div>
                     <div style={{ borderBottom: '1px dashed black', margin: '6px 0' }}></div>
@@ -2683,7 +2168,6 @@
                   <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '13px' }}>KITCHEN SLIP</div>
                   <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '15px' }}>MR. CHAI DUDE</div>
                   <div style={{ borderBottom: '1px dashed black', margin: '6px 0' }}></div>
-                  <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '16px' }}>TOKEN #: #{completedOrderForPrint.tokenNo || '-'}</div>
                   <div>ID: {completedOrderForPrint.id}</div>
                   <div>Date: {completedOrderForPrint.timestamp}</div>
                   <div style={{ borderBottom: '1px dashed black', margin: '6px 0' }}></div>
